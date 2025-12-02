@@ -1,5 +1,6 @@
 package org.zloyleva.tests;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 
 import org.junit.jupiter.api.AfterEach;
@@ -11,6 +12,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.zloyleva.utils.AppURL;
 import org.zloyleva.utils.ByTestId;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -18,7 +22,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 public class RegistrationPageTest {
 
     WebDriver driver;
-    String url = "http://localhost:5678/registration";
+    String url = AppURL.REGISTRATION.getDescription();
 
     @BeforeEach
     public void setup() {
@@ -85,5 +89,66 @@ public class RegistrationPageTest {
         // Registration form has submit button
         WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
         assertTrue(submitButton.isDisplayed());
+    }
+
+    @Test
+    public void testRegistrationFlow() {
+        // Fill in registration form
+        SecureRandom secureRandom = new SecureRandom();
+        int randomInt = secureRandom.nextInt(10000);
+        WebElement userNameInput = driver.findElement(ByTestId.testId("user-name-input"));
+        userNameInput.sendKeys("testuser" + randomInt);
+
+        WebElement userPasswordInput = driver.findElement(ByTestId.testId("user-password-input"));
+        userPasswordInput.sendKeys("testpassword");
+
+        WebElement submitButton = driver.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+
+        // Wait for redirect to home page after successful registration
+        new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(ExpectedConditions.urlToBe(AppURL.HOME.getDescription()));
+
+        String currentUrl = driver.getCurrentUrl();
+        assertEquals(AppURL.HOME.getDescription(), currentUrl);
+    }
+
+    @Test
+    public void testRegistrationWithExistingUser() {
+        // Fill in registration form with existing user
+        SecureRandom secureRandom = new SecureRandom();
+        int randomInt = secureRandom.nextInt(10000);
+        String existingUserName = "existinguser" + randomInt;
+
+        WebElement userNameInput = driver.findElement(ByTestId.testId("user-name-input"));
+        userNameInput.sendKeys(existingUserName);
+        WebElement userPasswordInput = driver.findElement(ByTestId.testId("user-password-input"));
+        userPasswordInput.sendKeys("somepassword");
+        WebElement submitButton = driver.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+        // Check for error message
+        new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(ExpectedConditions.urlToBe(AppURL.HOME.getDescription()));
+
+        // do the navigate to the registration page again
+        driver.get(url);
+        new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(ExpectedConditions.urlToBe(AppURL.REGISTRATION.getDescription()));
+
+        WebElement userNameInput1 = driver.findElement(ByTestId.testId("user-name-input"));
+        userNameInput1.sendKeys(existingUserName);
+        WebElement userPasswordInput1 = driver.findElement(ByTestId.testId("user-password-input"));
+        userPasswordInput1.sendKeys("somepassword");
+        WebElement submitButton1 = driver.findElement(ByTestId.testId("submit-button"));
+        submitButton1.click();
+
+        WebElement errorMessage = new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(ExpectedConditions.visibilityOfElementLocated(ByTestId.testId("error-registration")));
+
+        assertTrue(errorMessage.isDisplayed());
+        assertEquals("Got an error during registration process, call the support team", errorMessage.getText());
+
+        String currentUrl = driver.getCurrentUrl();
+        assertEquals(AppURL.REGISTRATION.getDescription(), currentUrl);
     }
 }
