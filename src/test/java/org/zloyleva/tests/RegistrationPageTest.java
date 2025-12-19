@@ -89,6 +89,13 @@ public class RegistrationPageTest {
         // Registration form has submit button
         WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
         assertTrue(submitButton.isDisplayed());
+
+        // todo add check error message elements existence
+        WebElement userErrorMessage = registrationForm.findElement(By.id("error-user"));
+        assertEquals(false, userErrorMessage.isDisplayed());
+
+        WebElement passwordErrorMessage = registrationForm.findElement(By.id("error-password"));
+        assertEquals(false, passwordErrorMessage.isDisplayed());
     }
 
     @Test
@@ -100,7 +107,7 @@ public class RegistrationPageTest {
         userNameInput.sendKeys("testuser" + randomInt);
 
         WebElement userPasswordInput = driver.findElement(ByTestId.testId("user-password-input"));
-        userPasswordInput.sendKeys("testpassword");
+        userPasswordInput.sendKeys("Cucumber123!");
 
         WebElement submitButton = driver.findElement(ByTestId.testId("submit-button"));
         submitButton.click();
@@ -123,7 +130,7 @@ public class RegistrationPageTest {
         WebElement userNameInput = driver.findElement(ByTestId.testId("user-name-input"));
         userNameInput.sendKeys(existingUserName);
         WebElement userPasswordInput = driver.findElement(ByTestId.testId("user-password-input"));
-        userPasswordInput.sendKeys("somepassword");
+        userPasswordInput.sendKeys("Cucumber123!");
         WebElement submitButton = driver.findElement(ByTestId.testId("submit-button"));
         submitButton.click();
         // Check for error message
@@ -138,7 +145,7 @@ public class RegistrationPageTest {
         WebElement userNameInput1 = driver.findElement(ByTestId.testId("user-name-input"));
         userNameInput1.sendKeys(existingUserName);
         WebElement userPasswordInput1 = driver.findElement(ByTestId.testId("user-password-input"));
-        userPasswordInput1.sendKeys("somepassword");
+        userPasswordInput1.sendKeys("Cucumber123!");
         WebElement submitButton1 = driver.findElement(ByTestId.testId("submit-button"));
         submitButton1.click();
 
@@ -150,5 +157,80 @@ public class RegistrationPageTest {
 
         String currentUrl = driver.getCurrentUrl();
         assertEquals(AppURL.REGISTRATION.getDescription(), currentUrl);
+    }
+
+    @Test
+    public void testValidationFailWhenFieldsAreEmpty() {
+        WebElement registrationForm = driver.findElement(ByTestId.testId("registration-form"));
+        WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+
+        WebElement userErrorMessage = registrationForm.findElement(By.id("error-user"));
+        assertTrue(userErrorMessage.isDisplayed());
+        assertEquals("User name must be at least 3 characters long.", userErrorMessage.getText());
+
+        WebElement passwordErrorMessage = registrationForm.findElement(By.id("error-password"));
+        assertTrue(passwordErrorMessage.isDisplayed());
+        assertEquals("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", passwordErrorMessage.getText());
+
+        WebElement userNameInput = registrationForm.findElement(By.id("user"));
+        assertTrue(userNameInput.isDisplayed());
+        assertTrue(userNameInput.getDomAttribute("class").contains("is-invalid"));
+
+        WebElement userPasswordInput = registrationForm.findElement(By.id("password"));
+        assertTrue(userPasswordInput.isDisplayed());
+        assertTrue(userPasswordInput.getDomAttribute("class").contains("is-invalid"));
+    }
+
+    @Test
+    public void testValidationFailWhenPasswordIsWeak() {
+        WebElement registrationForm = driver.findElement(ByTestId.testId("registration-form"));
+        WebElement userNameInput = registrationForm.findElement(By.id("user"));
+        userNameInput.sendKeys("validusername");
+        WebElement userPasswordInput = registrationForm.findElement(By.id("password"));
+        userPasswordInput.sendKeys("weak"); // weak password
+        WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+
+        WebElement passwordErrorMessage = registrationForm.findElement(By.id("error-password"));
+        assertTrue(passwordErrorMessage.isDisplayed());
+        assertEquals("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", passwordErrorMessage.getText());
+
+        assertTrue(userPasswordInput.isDisplayed());
+        assertTrue(userPasswordInput.getDomAttribute("class").contains("is-invalid"));
+    }
+
+    @Test
+    public void testValidationFailWhenUserNameIsEmpty() {
+        WebElement registrationForm = driver.findElement(ByTestId.testId("registration-form"));
+        WebElement userPasswordInput = registrationForm.findElement(By.id("password"));
+        userPasswordInput.sendKeys("StrongPass1!"); // valid password
+        WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+
+        WebElement userErrorMessage = registrationForm.findElement(By.id("error-user"));
+        assertTrue(userErrorMessage.isDisplayed());
+        assertEquals("User name must be at least 3 characters long.", userErrorMessage.getText());
+
+        WebElement userNameInput = registrationForm.findElement(By.id("user"));
+        assertTrue(userNameInput.isDisplayed());
+        assertTrue(userNameInput.getDomAttribute("class").contains("is-invalid"));
+    }
+
+    @Test
+    public void testValidationFailWhenPasswordIsEmpty() {
+        WebElement registrationForm = driver.findElement(ByTestId.testId("registration-form"));
+        WebElement userNameInput = registrationForm.findElement(By.id("user"));
+        userNameInput.sendKeys("validusername"); // valid username
+        WebElement submitButton = registrationForm.findElement(ByTestId.testId("submit-button"));
+        submitButton.click();
+
+        WebElement passwordErrorMessage = registrationForm.findElement(By.id("error-password"));
+        assertTrue(passwordErrorMessage.isDisplayed());
+        assertEquals("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", passwordErrorMessage.getText());
+
+        WebElement userPasswordInput = registrationForm.findElement(By.id("password"));
+        assertTrue(userPasswordInput.isDisplayed());
+        assertTrue(userPasswordInput.getDomAttribute("class").contains("is-invalid"));
     }
 }
