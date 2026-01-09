@@ -118,6 +118,8 @@ public class RegistrationPageTest {
 
         String currentUrl = driver.getCurrentUrl();
         assertEquals(AppURL.HOME.getDescription(), currentUrl);
+
+        // TODO: check the header it should has the logout form and Greeting message!
     }
 
     @Test

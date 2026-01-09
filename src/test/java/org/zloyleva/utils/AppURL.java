@@ -2,7 +2,8 @@ package org.zloyleva.utils;
 
 public enum AppURL {
     HOME("http://localhost:5678/"),
-    REGISTRATION("http://localhost:5678/registration");
+    REGISTRATION("http://localhost:5678/registration"),
+    LOGIN("http://localhost:5678/login");
 
     private String description;
 
